@@ -6,7 +6,8 @@ For this task we will use the data from a personal activity monitoring device. T
 
 In this first block, we will load the data and process it as necessary. The use of the code for this exercise is:
 
-```{r read.data}
+
+```r
 library(data.table)
 plan <- fread("activity.csv")
 plan$date <- as.Date(plan$date, "%Y-%m-%d")
@@ -18,7 +19,8 @@ The code is read with the "fread" function of the data.table package. The only p
 
 In this exercise, we will generate a histogram of the total number of steps taken each day and calculate the average number of steps taken per day. In this block, the NA values can be ignored.
 
-```{r Fig1, fig.width=7, fig.height=6}
+
+```r
 planSteps <- plan[, lapply(.SD, sum), by = date, .SDcols = "steps"]
 
 par(lend = "square")
@@ -29,32 +31,60 @@ plot(planSteps$date, planSteps$steps,
      main = "number of steps per day")
 
 lines(planSteps$date, planSteps$steps, type = "h", lwd = 7, col = "magenta")
+```
 
+![plot of chunk Fig1](figure/Fig1-1.png)
+
+```r
 mean(planSteps$steps, na.rm = T);median(planSteps$steps, na.rm = T)
+```
+
+```
+## [1] 10766.19
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
 We will do a series of times of the interval of 5 minutes (x-axis) and the average number of steps performed, calculating the average every day. Find which 5-minute interval, on average, for all days in the dataset, contains the maximum number of steps.
 
-```{r Fig2}
+
+```r
 planSteps2 <- plan[!is.na(plan$steps)][,lapply(.SD, mean), by = interval, .SDcols = "steps"]
 
 plot(planSteps2$interval, planSteps2$steps, type = "l", 
      xlab = "interval", ylab = "steps", 
      main = "steps by interval")
+```
 
+![plot of chunk Fig2](figure/Fig2-1.png)
+
+```r
 planSteps2[which.max(planSteps2$steps)]
+```
+
+```
+##    interval    steps
+## 1:      835 206.1698
 ```
 
 ## Inputing missing values
 
 We will calculate the total number of missing values in the data set. We will devise a strategy to fill in all the missing values in the data set. We will create a new data set without missing values and repeat exercise 1.
 
-```{r Fig3}
+
+```r
 length(plan$steps[is.na(plan$steps)])
+```
 
+```
+## [1] 2304
+```
 
+```r
 plan$steps[is.na(plan$steps)] <- with(plan, ave(steps, interval, 
                                       FUN = function(x) median(x, na.rm = T)))[is.na(plan$steps)] 
                                       #median substitute missing values 
@@ -69,8 +99,20 @@ plot(planSteps3$date, planSteps3$steps,
      main = "number of steps per day")
 
 lines(planSteps3$date, planSteps3$steps, type = "h", lwd = 7, col = "blue")
+```
 
+![plot of chunk Fig3](figure/Fig3-1.png)
+
+```r
 mean(planSteps3$steps, na.rm = T);median(planSteps3$steps, na.rm = T)
+```
+
+```
+## [1] 9503.869
+```
+
+```
+## [1] 10395
 ```
 
 
@@ -86,7 +128,8 @@ The results are presented showing the average number of steps in each interval f
 
 Now let's create a new variable that indicates whether a particular day is WEEKEND or WEEKDAY. (Using Factor) Next, we measure the number of steps per interval on all weeks and weekends.
 
-```{r Fig4}
+
+```r
 library(chron)
 library(plyr)
 plan$day <- revalue(as.factor(is.weekend(plan$date)), 
@@ -98,8 +141,9 @@ planSumm <- dcast(planMelt, day + interval ~ variable, mean)[,1:3]
 
 library(lattice)
 xyplot(steps ~ interval | day, data = planSumm, layout = c(1,2), type = "l")
-
 ```
+
+![plot of chunk Fig4](figure/Fig4-1.png)
 
 
 Although they appear to be very similar, more activity is noticed around midday intervals over the weekend compared to the day of the week. Weekday activity starts a little earlier than the weekend, with a high activity level around 9 o'clock in the morning, probably due to work hours.
